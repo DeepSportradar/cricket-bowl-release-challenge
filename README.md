@@ -1,1 +1,1 @@
-# cricket-ball-release-challenge
+# cricket-bowl-release-challenge
