@@ -1,10 +1,12 @@
 """Main function"""
 from argparse import ArgumentParser
 
+import numpy as np
 import torch
+from torch.utils.data import DataLoader, Subset
+
 from dataset.ds_cricket import CricketImageDataset
 from model.resnet import CricketBaseModel
-from torch.utils.data import DataLoader, Subset
 from utilities.utils import get_device
 
 
@@ -26,6 +28,7 @@ def train(dataloader, model, loss_fn, optimizer, device):
         if batch % 100 == 0:
             loss, current = loss.item(), (batch + 1) * len(X)
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
+    torch.save(model.state_dict(), "model.pth")
 
 
 def test(dataloader, model, loss_fn, device):
@@ -33,17 +36,48 @@ def test(dataloader, model, loss_fn, device):
     num_batches = len(dataloader)
     model.eval()
     test_loss, correct = 0, 0
+    gt_ = []
+    pred_ = []
     with torch.no_grad():
         for X, y in dataloader:
             X, y = X.to(device), y.to(device)
             pred = model(X)
             test_loss += loss_fn(pred, y).item()
             correct += (pred.argmax(1) == y).type(torch.float).sum().item()
+            class_prob = torch.softmax(pred, dim=1).cpu().numpy()
+            pred_.append(class_prob[:, 1])
+            gt_.append(y.cpu().numpy())
+
+    preds = np.concatenate(pred_)
+    gts = np.concatenate(gt_)
     test_loss /= num_batches
     correct /= size
     print(
         f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n"
     )
+    compute_metric(preds, gts)
+
+
+def compute_metric(preds, gts):
+    weights = np.zeros_like(gts)
+    for id, gt in enumerate(gts):
+        if gt == 1:
+            weights[id] = 1
+            if id < gts.size and gts[id + 1] == 0:
+                weights[id] = 2
+    avpr = iou_metric(preds, gts, weights, 0.5)
+    print(f"IoU Metric: \n {(100*avpr):>0.1f}% \n")
+
+
+def iou_metric(gt, pred, weights, thre):
+    pred = pred >= thre
+    inter = np.sum((pred * gt) * weights)
+    union = np.sum(np.logical_or(pred, gt) * weights)
+    if union == 0.0:
+        iou = 0.0
+    else:
+        iou = inter / union
+    return iou
 
 
 def main(args):
@@ -79,6 +113,12 @@ def main(args):
 
     loss_fn = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
+    if args.eval:
+        print("Eval \n-------------------------------")
+        print("Loading model parameters")
+        model.load_state_dict(torch.load("model.pth"))
+        test(test_loader, model, loss_fn, device)
+        return
 
     for t in range(args.epochs):
         print(f"Epoch {t+1}\n-------------------------------")
@@ -95,5 +135,7 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--batch_size", default=32, type=int)
     parser.add_argument("--epochs", type=int, default=5)
+    parser.add_argument("--eval", action="store_true")
+
     args = parser.parse_args()
     main(args)
