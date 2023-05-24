@@ -1,4 +1,8 @@
 """Main function"""
+
+import logging
+import os
+import time
 from argparse import ArgumentParser
 
 import numpy as np
@@ -7,9 +11,12 @@ from torch.utils.data import DataLoader, Subset
 
 from dataset.ds_cricket import CricketImageDataset
 from model.resnet import CricketBaseModel
-from utilities.utils import get_device
+from utils.utils import configure_logger, get_device
+
+LOGGER = logging.getLogger(__name__)
 
 
+# TODO: move this to utils
 def train(dataloader, model, loss_fn, optimizer, device):
     size = len(dataloader.dataset)
     model.train()
@@ -27,8 +34,7 @@ def train(dataloader, model, loss_fn, optimizer, device):
 
         if batch % 100 == 0:
             loss, current = loss.item(), (batch + 1) * len(X)
-            print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
-    torch.save(model.state_dict(), "model.pth")
+            LOGGER.info(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
 
 def test(dataloader, model, loss_fn, device):
@@ -43,6 +49,7 @@ def test(dataloader, model, loss_fn, device):
             X, y = X.to(device), y.to(device)
             pred = model(X)
             test_loss += loss_fn(pred, y).item()
+            # TODO: check this accuracy or remove it entirely
             correct += (pred.argmax(1) == y).type(torch.float).sum().item()
             class_prob = torch.softmax(pred, dim=1).cpu().numpy()
             pred_.append(class_prob[:, 1])
@@ -52,10 +59,10 @@ def test(dataloader, model, loss_fn, device):
     gts = np.concatenate(gt_)
     test_loss /= num_batches
     correct /= size
-    print(
+    LOGGER.info(
         f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n"
     )
-    compute_metric(preds, gts)
+    return compute_metric(preds, gts)
 
 
 def compute_metric(preds, gts):
@@ -66,7 +73,8 @@ def compute_metric(preds, gts):
             if id < gts.size and gts[id + 1] == 0:
                 weights[id] = 2
     avpr = iou_metric(preds, gts, weights, 0.5)
-    print(f"IoU Metric: \n {(100*avpr):>0.1f}% \n")
+    LOGGER.info(f"IoU Metric: \n {(100*avpr):>0.1f}% \n")
+    return avpr
 
 
 def iou_metric(gt, pred, weights, thre):
@@ -86,13 +94,24 @@ def main(args):
     Args:
         args (_type_): _description_
     """
+    # TODO: pass explicit arguments and document
+    if not args.eval:
+        log_path = os.path.join(
+            "logs", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        )
+        os.makedirs(log_path, exist_ok=True)
+        configure_logger(LOGGER, verbose=False, log_path=log_path)
     # Get cpu, gpu or mps device for training.
     device = get_device()
-    print(f"Using {device} device")
+    LOGGER.info(f"Using {device} device")
 
     model_base = CricketBaseModel()
     model = model_base.model.to(device)
+    if args.resume:
+        LOGGER.info(f"Loading model parameters from {args.resume}")
+        model.load_state_dict(torch.load(args.resume))
 
+    # TODO: provide real paths
     data_path = "data/1-5111dd09-47d8-40d9-ae07-c9c114d58a7b_snippet1/"
     ann_path = "data/sr_1-5111dd09-47d8-40d9-ae07-c9c114d58a7b_snippet1.json"
 
@@ -114,20 +133,24 @@ def main(args):
     loss_fn = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
     if args.eval:
-        print("Eval \n-------------------------------")
-        print("Loading model parameters")
-        model.load_state_dict(torch.load("model.pth"))
+        LOGGER.info("Eval \n-------------------------------")
+
         test(test_loader, model, loss_fn, device)
         return
-
+    best_iou = 0
     for t in range(args.epochs):
-        print(f"Epoch {t+1}\n-------------------------------")
+        LOGGER.info(f"Epoch {t+1}\n-------------------------------")
         train(train_loader, model, loss_fn, optimizer, device)
-        test(test_loader, model, loss_fn, device)
+        ioum = test(test_loader, model, loss_fn, device)
+        if ioum > best_iou:
+            torch.save(
+                model.state_dict(), os.path.join(log_path, "model_best.pth")
+            )
+            best_iou = ioum
 
-    print("Done!")
-    torch.save(model.state_dict(), "model.pth")
-    print("Saved PyTorch Model State to model.pth")
+    LOGGER.info("Done!")
+    torch.save(model.state_dict(), os.path.join(log_path, "model_final.pth"))
+    LOGGER.info("Saved PyTorch Model State to model.pth")
 
 
 if __name__ == "__main__":
@@ -136,6 +159,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", default=32, type=int)
     parser.add_argument("--epochs", type=int, default=5)
     parser.add_argument("--eval", action="store_true")
+    parser.add_argument("--resume", type=str, default="")
 
     args = parser.parse_args()
     main(args)
