@@ -26,11 +26,12 @@ class CricketImageDataset(Dataset):
         for idx, _ in enumerate(self.img_files):
             if str(idx) in annotated:
                 self.labels[idx] = 1
+        # TODO: selective augmentation for training or testing
         self.transforms = transforms.Compose(
             [
                 transforms.ToPILImage(),
                 transforms.CenterCrop(300),
-                transforms.RandomHorizontalFlip(),
+                # transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
                 transforms.Normalize(
                     [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]

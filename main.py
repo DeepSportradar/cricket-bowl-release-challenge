@@ -54,7 +54,7 @@ def test(dataloader, model, loss_fn, device):
             class_prob = torch.softmax(pred, dim=1).cpu().numpy()
             pred_.append(class_prob[:, 1])
             gt_.append(y.cpu().numpy())
-
+    # TODO: save predictions to file for inference
     preds = np.concatenate(pred_)
     gts = np.concatenate(gt_)
     test_loss /= num_batches
@@ -101,6 +101,8 @@ def main(args):
         )
         os.makedirs(log_path, exist_ok=True)
         configure_logger(LOGGER, verbose=False, log_path=log_path)
+    else:
+        configure_logger(LOGGER, verbose=False)
     # Get cpu, gpu or mps device for training.
     device = get_device()
     LOGGER.info(f"Using {device} device")
