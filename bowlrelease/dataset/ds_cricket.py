@@ -1,11 +1,14 @@
 """Cricket Bowl Release Challenge dataset"""
 import json
+import logging
 import os
 
 import numpy as np
-from torch.utils.data import Dataset
+from torch.utils.data import DataLoader, Dataset, Subset
 from torchvision import transforms
 from torchvision.io import read_image
+
+LOGGER = logging.getLogger(__name__)
 
 
 class CricketImageDataset(Dataset):
@@ -48,3 +51,34 @@ class CricketImageDataset(Dataset):
         label = self.labels[idx]
         image = self.transforms(image)
         return image, label
+
+
+def get_dataloaders(data_path, ann_path, batch_size):
+    # TODO: provide real paths
+
+    dataset = CricketImageDataset(ann_path, data_path)
+
+    train_set = Subset(dataset, range(15000))
+    test_set = Subset(
+        dataset,
+        [len(train_set) + f for f in range(len(dataset) - len(train_set))],
+    )
+
+    train_loader = DataLoader(
+        train_set,
+        batch_size=batch_size,
+        num_workers=4,
+        pin_memory=True,
+        shuffle=True,
+    )
+
+    test_loader = DataLoader(
+        test_set,
+        batch_size=batch_size,
+        num_workers=4,
+        pin_memory=True,
+        shuffle=False,
+    )
+    LOGGER.info("Created Cricket Image dataset")
+
+    return train_loader, test_loader

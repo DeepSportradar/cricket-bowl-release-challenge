@@ -2,8 +2,11 @@
 """
 import logging
 import os
+import time
 
 import torch
+
+LOGGER = logging.getLogger(__name__)
 
 
 def get_device():
@@ -17,9 +20,7 @@ def get_device():
     )
 
 
-def configure_logger(
-    logger: logging.Logger, verbose: bool, log_path: str = ""
-):
+def configure_logger(logger: logging.Logger, verbose: bool, eval: bool) -> str:
     """Configures the logging verbosity"""
     formatter = logging.Formatter(
         "%(asctime)s %(levelname)-8s [%(threadName)s] [%(filename)s:%(lineno)d] %(message)s"
@@ -29,8 +30,16 @@ def configure_logger(
     handler.setLevel(stream_level)
     handler.setFormatter(formatter)
     logger.addHandler(handler)
-    if log_path:
+    log_path = ""
+    if not eval:
+        print("not eval")
+        log_path = os.path.join(
+            "logs", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        )
+        os.makedirs(log_path, exist_ok=True)
+
         fhlr = logging.FileHandler(os.path.join(log_path, "train.log"))
         fhlr.setFormatter(formatter)
         logger.addHandler(fhlr)
     logger.setLevel(logging.DEBUG)
+    return log_path
