@@ -125,11 +125,19 @@ def main(args):
     )
 
     train_loader = DataLoader(
-        train_set, batch_size=args.batch_size, num_workers=4, pin_memory=True
+        train_set,
+        batch_size=args.batch_size,
+        num_workers=4,
+        pin_memory=True,
+        shuffle=True,
     )
 
     test_loader = DataLoader(
-        test_set, batch_size=args.batch_size, num_workers=4, pin_memory=True
+        test_set,
+        batch_size=args.batch_size,
+        num_workers=4,
+        pin_memory=True,
+        shuffle=False,
     )
 
     loss_fn = torch.nn.CrossEntropyLoss()
