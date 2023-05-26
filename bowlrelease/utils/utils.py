@@ -4,7 +4,9 @@ import logging
 import os
 import time
 
+import numpy as np
 import torch
+from torchvision.models import ResNet50_Weights, resnet50
 
 LOGGER = logging.getLogger(__name__)
 
@@ -43,3 +45,19 @@ def configure_logger(logger: logging.Logger, verbose: bool, eval: bool) -> str:
         logger.addHandler(fhlr)
     logger.setLevel(logging.DEBUG)
     return log_path
+
+
+def extract_features(dataloader, device, filename="features.npy"):
+    """Utiltiy to extract features from images"""
+    model = resnet50(weights=ResNet50_Weights.DEFAULT)
+    model.fc = torch.nn.Identity()
+    model.to(device)
+    model.eval()
+    pred_ = []
+    with torch.no_grad():
+        for X, y in dataloader:
+            X, y = X.to(device), y.to(device)
+            pred = model(X)
+            pred_.append(pred.cpu().numpy())
+    preds = np.concatenate(pred_)
+    np.save(filename, preds)

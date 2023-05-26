@@ -7,6 +7,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 def train(dataloader, model, loss_fn, optimizer, device):
+    """Training loop for the model"""
     size = len(dataloader.dataset)
     model.train()
     for batch, (X, y) in enumerate(dataloader):
@@ -21,13 +22,16 @@ def train(dataloader, model, loss_fn, optimizer, device):
         optimizer.step()
         optimizer.zero_grad()
 
-        if batch % 100 == 0:
+        if batch % 2 == 0:
             loss, current = loss.item(), (batch + 1) * len(X)
             LOGGER.info(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
 
-def test(dataloader, model, loss_fn, device):
+def test(dataloader, model, loss_fn, device, features):
+    """Test function"""
     size = len(dataloader.dataset)
+    if features:
+        size *= dataloader.dataset.length_seq
     num_batches = len(dataloader)
     model.eval()
     test_loss, correct = 0, 0
@@ -38,11 +42,16 @@ def test(dataloader, model, loss_fn, device):
             X, y = X.to(device), y.to(device)
             pred = model(X)
             test_loss += loss_fn(pred, y).item()
-            # TODO: check this accuracy or remove it entirely
-            correct += (pred.argmax(1) == y).type(torch.float).sum().item()
-            class_prob = torch.softmax(pred, dim=1).cpu().numpy()
-            pred_.append(class_prob[:, 1])
-            gt_.append(y.cpu().numpy())
+            if not features:
+                correct += (pred.argmax(1) == y).type(torch.float).sum().item()
+                class_prob = torch.softmax(pred, dim=1).cpu().numpy()
+                pred_.append(class_prob[:, 1])
+            else:
+                correct += ((pred > 0.5) == y).type(torch.float).sum().item()
+                pred_.append(
+                    (pred > 0.5).type(torch.float).cpu().numpy().flatten()
+                )
+            gt_.append(y.cpu().numpy().flatten())
     # TODO: save predictions to file for inference
     preds = np.concatenate(pred_)
     gts = np.concatenate(gt_)
@@ -55,6 +64,7 @@ def test(dataloader, model, loss_fn, device):
 
 
 def compute_metric(preds, gts):
+    """Compute the metric and apply weights to final frame"""
     weights = np.zeros_like(gts)
     for id, gt in enumerate(gts):
         if gt == 1:
@@ -67,6 +77,7 @@ def compute_metric(preds, gts):
 
 
 def iou_metric(gt, pred, weights, thre):
+    """Generic IOU metric"""
     pred = pred >= thre
     inter = np.sum((pred * gt) * weights)
     union = np.sum(np.logical_or(pred, gt) * weights)
@@ -77,7 +88,19 @@ def iou_metric(gt, pred, weights, thre):
     return iou
 
 
-def get_loss_and_optimizer(model):
-    loss_fn = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
+def get_loss_and_optimizer(model, features):
+    """Return loss and optimizer"""
+    if features:
+        loss_fn = torch.nn.MSELoss()
+        optimizer = torch.optim.AdamW(model.parameters(), amsgrad=True)
+    else:
+        loss_fn = torch.nn.CrossEntropyLoss()
+        optimizer = torch.optim.AdamW(
+            [
+                {"params": model.rn_model.parameters(), "lr": 1e-5},
+                {"params": model.feat_bn.parameters()},
+                {"params": model.classifier.parameters()},
+            ],
+            lr=1e-3,
+        )
     return loss_fn, optimizer

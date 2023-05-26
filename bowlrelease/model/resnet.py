@@ -29,8 +29,34 @@ class CricketBaseModel(torch.nn.Module):
         return x
 
 
-def get_model(device, resume):
-    model = CricketBaseModel()
+class CricketFeturesBaseModel(torch.nn.Module):
+    """A FFN that reads "seq_length" features and predicts
+    if "is bowling" for eahc one of them
+    """
+
+    def __init__(self, seq_length=50):
+        super().__init__()
+
+        self.rn_model_fc = torch.nn.Linear(2048 * seq_length, 512)
+        self.feat_bn = torch.nn.BatchNorm1d(512)
+        self.classifier = torch.nn.Linear(512, seq_length)
+
+        torch.nn.init.kaiming_uniform_(self.rn_model_fc.weight)
+        torch.nn.init.kaiming_uniform_(self.classifier.weight)
+
+    def forward(self, x):
+        x = torch.flatten(x, 1)
+        x = self.rn_model_fc(x)
+        x = self.feat_bn(x)
+        x = self.classifier(x)
+        return x
+
+
+def get_model(device, resume, features):
+    if features:
+        model = CricketFeturesBaseModel()
+    else:
+        model = CricketBaseModel()
     if resume:
         LOGGER.info(f"Loading model parameters from {resume}")
         model.load_state_dict(torch.load(resume))
