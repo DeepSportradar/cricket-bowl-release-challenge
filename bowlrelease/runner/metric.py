@@ -1,5 +1,6 @@
 """Bowl release challenge metrics."""
 import logging
+from typing import Dict, List, Tuple
 
 import numpy as np
 from pycocotools.mask import iou
@@ -7,16 +8,18 @@ from scipy.optimize import linear_sum_assignment
 
 LOGGER = logging.getLogger(__name__)
 
+IOU_THRESHOLD = 0.5
+
 
 def _compute_pq_sq_rq(det, ann):
     iou_sum, det_idxs_mth, ann_idxs_mth = _compute_matching(det, ann)
     fps = 0
-    for id, _ in enumerate(det):
-        if id not in det_idxs_mth:
+    for id_, _ in enumerate(det):
+        if id_ not in det_idxs_mth:
             fps += 1
     fns = 0
-    for id, _ in enumerate(ann):
-        if id not in ann_idxs_mth:
+    for id_, _ in enumerate(ann):
+        if id_ not in ann_idxs_mth:
             fns += 1
     tps = len(det_idxs_mth)
     sq_ = iou_sum / tps
@@ -40,7 +43,21 @@ def _compute_matching(det, ann):
     return iou_sum, det_idxs_mth, ann_idxs_mth
 
 
-def _compute_pq_metric(gt_data, pred_data):
+def compute_pq_metric(
+    gt_data: Dict[str, Dict[str, List[int]]],
+    pred_data: Dict[str, Dict[str, List[int]]],
+) -> Tuple[np.float64, np.float64, np.float64]:
+    """Panoptic Quality metric.
+    It computes the mean of the Panoptic quality scores across all videos.
+
+
+    Args:
+        gt_data (Dict): ground truth data.
+        pred_data (Dict): prediction data.
+
+    Returns:
+        Tuple: Panoptic Quality, Segmentation Quality, Recognition Quality.
+    """
     msq = []
     mrq = []
     mpq = []
