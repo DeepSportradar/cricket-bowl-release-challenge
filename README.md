@@ -18,7 +18,6 @@ The challenge-set will be used for the official challenge ranking.
     
 Maintainers: Davide Zambrano (d.zambrano@sportradar.com) from Sportradar.
 
-This challenge started as a fork of the [player re-identification challenge](https://github.com/VIPriors/vipriors-challenges-toolkit/tree/master/re-identification) proposed in the [2nd VIPriors workshop challenges](https://vipriors.github.io/challenges/).
 
 &nbsp;
 <p align="center"><img src="assets/banner.png" width="740"></p>
