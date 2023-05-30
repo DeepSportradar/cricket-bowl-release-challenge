@@ -3,6 +3,8 @@ import logging
 import numpy as np
 import torch
 
+from bowlrelease.runner.metric import iou_metric
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -74,18 +76,6 @@ def compute_metric(preds, gts):
     avpr = iou_metric(preds, gts, weights, 0.5)
     LOGGER.info(f"IoU Metric: \n {(100*avpr):>0.1f}% \n")
     return avpr
-
-
-def iou_metric(gt, pred, weights, thre):
-    """Generic IOU metric"""
-    pred = pred >= thre
-    inter = np.sum((pred * gt) * weights)
-    union = np.sum(np.logical_or(pred, gt) * weights)
-    if union == 0.0:
-        iou = 0.0
-    else:
-        iou = inter / union
-    return iou
 
 
 def get_loss_and_optimizer(model, features):
