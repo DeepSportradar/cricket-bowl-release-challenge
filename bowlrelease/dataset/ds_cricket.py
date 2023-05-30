@@ -28,8 +28,8 @@ class CricketImageDataset(Dataset):
         self.labels = np.zeros(len(self.img_files), dtype=int)
 
         for idx in annotated:
-            if idx < len(self.img_files):
-                self.labels[idx] = 1
+            if int(idx) < len(self.img_files):
+                self.labels[int(idx)] = 1
 
         # TODO: selective augmentation for training or testing
         self.transforms = transforms.Compose(
