@@ -7,16 +7,44 @@
 
 Welcome to the first edition of the DeepSportradar Cricket Bowl Release Challenge, which is one of the [ACM MMSports 2023 Workshop](http://mmsports.multimedia-computing.de/mmsports2023/index.html) challenges. 
 An opportunity to publish, as well as winning a $1000 prize by competing on [EvalAI](https://eval.ai/web/challenges/challenge-page/2077/overview). 
-See [this page](http://mmsports.multimedia-computing.de/mmsports2023/challenge.html) for more details.
+See [this page](http://mmsports.multimedia-computing.de/mmsports2023/challenge.html) for more details about our challenges.
+These challenges are associated with the 6th Intrnational ACM Workshop on Multimedia Content Analysis in Sports.
 In this challenge, participants will have to segment the input video to recognize the bowl release action.
 
 ## NOTE: The challenge dataset will be released in the next two weeks.
 
-The dataset is split into a training, test and challenge set.
-This challenge aims at segmenting the parts of the videos where a bowl release is happening.
-Differnetly from other action detection challenges, here we are interested in detecting the time window when the bowl release action is happening.
-The event lasts usually around 100 frames in the video. The objective of this challenge is to detect all bowl release events.
+The dataset is split into a training, test and challenge set. Annotations will be provided for the first two splits and hidden for the latter.
+Data have been annotated internally by Sportradar. Videos are extracted from real matches and consist in about two "overs".
+The dataset will be relased publicly for research purposes only.
 
+The objective of this challenge is to segment the specific parts of videos where a bowl release action occurs, focusing on detecting the full time window of the action. 
+This differs from other action detection tasks, that treat actions as single moments in time. 
+Typically lasting around 100 frames, the event detection aims to identify all instances of bowl release events.
+
+## Metrics
+
+As the challenge objective is to identify all instances of bowl release, we decided to treat the problem as instance segmentation through time.
+For this reason, we use the Panoptic Quality as metric. 
+
+Panoptic Quality is a metric used to evaluate the performance of instance segmentation algorithms in computer vision. Instance segmentation involves identifying and delineating individual objects within an image, assigning each pixel to a specific object instance. Here we want to measure the model ability to identify and delineate individual bowl releases action instances.
+
+Panoptic Quality combines two key aspects of instance segmentation: segmentation quality and recognition quality. It measures the accuracy of both the object boundary delineation (segmentation quality) and the correct association of each segment with the corresponding object category (recognition quality).
+
+To calculate Panoptic Quality, the algorithm's output is compared against ground truth annotations. The metric takes into account true positives (correctly segmented and recognized action events), false positives (over-segmented or misclassified action events), and false negatives (missed action events). It assigns scores based on the intersection over union (IoU) between the algorithm's segmentation masks and the ground truth masks. In this challenge we only consider IoUs when above to the 0.5 threshold.
+
+Panoptic Quality is computed using the following formula:
+
+$Panoptic Quality = PQ = \frac{{\sum_{i=1}^{N}TP_i}}{{\sum_{i=1}^{N}TP_i + \frac{1}{2}\sum_{i=1}^{N}(FP_i + FN_i)}}.$
+
+
+Where:
+
+- N is the total number of object categories
+- TP_i is the number of true positives for category i
+- FP_i is the number of false positives for category i
+- FN_i is the number of false negatives for category i
+
+Please refer to the [Submission on EvalAI section](#submission-on-evalai) for the submission format.
     
 Maintainers: Davide Zambrano (d.zambrano@sportradar.com) from Sportradar.
 
@@ -49,6 +77,23 @@ TBD
 
 ## Submission on EvalAI
 Submit your result through the [challenge page on the EvalAI platform](https://eval.ai/web/challenges/challenge-page/2077/overview).
+
+The submission file has to be a ```json``` with the following format:
+
+```json
+
+{
+    "video_0": {"0": [10, 100], "1": [350, 400]},
+    "video_1": {"0": [100, 200], "1": [350, 450]},
+    "video_n": {"0": [1000, 1100], "1": [350, 450]}
+}
+
+```
+Where: 
+
+- the keys identify the videos in the split;
+- then for each video, a Dict is expected with unique identifiers for each detected action;
+- each detected action is represented by a list containing the starting and ending frames for that action.
 
 
 Please refer to the challenge webpage for complete rules, timelines and awards: [https://deepsportradar.github.io/challenge.html](https://deepsportradar.github.io/challenge.html).
