@@ -14,12 +14,12 @@ IOU_THRESHOLD = 0.5
 def _compute_pq_sq_rq(det, ann):
     iou_sum, det_idxs_mth, ann_idxs_mth = _compute_matching(det, ann)
     fps = 0
-    for id, _ in enumerate(det):
-        if id not in det_idxs_mth:
+    for id_, _ in enumerate(det):
+        if id_ not in det_idxs_mth:
             fps += 1
     fns = 0
-    for id, _ in enumerate(ann):
-        if id not in ann_idxs_mth:
+    for id_, _ in enumerate(ann):
+        if id_ not in ann_idxs_mth:
             fns += 1
     tps = len(det_idxs_mth)
 
@@ -29,15 +29,16 @@ def _compute_pq_sq_rq(det, ann):
 def _compute_matching(det, ann):
     iou_matrix = iou(det[:, :4], ann[:, :4], np.zeros((len(ann)))).T
     iou_matrix[iou_matrix < 0.5] = 0.0
+    iou_sum = 0.0
     det_idxs, ann_idxs = linear_sum_assignment(iou_matrix.T, maximize=True)
     ann_idxs_mth, det_idxs_mth = [], []
     for anid, deid in zip(ann_idxs, det_idxs):
         if iou_matrix[anid, deid] >= IOU_THRESHOLD:
             ann_idxs_mth.append(anid)
             det_idxs_mth.append(deid)
+            iou_sum += iou_matrix[anid, deid]
     ann_idxs_mth = np.array(ann_idxs_mth)
     det_idxs_mth = np.array(det_idxs_mth)
-    iou_sum = iou_matrix.sum()
     return iou_sum, det_idxs_mth, ann_idxs_mth
 
 
