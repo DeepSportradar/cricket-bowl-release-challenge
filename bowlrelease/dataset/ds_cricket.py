@@ -13,7 +13,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class CricketImageDataset(Dataset):
-    """Cricket Dataset"""
+    """Cricket Image Dataset"""
 
     def __init__(self, annotations_file, img_dir):
         with open(annotations_file) as ann_:

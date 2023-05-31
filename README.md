@@ -11,9 +11,9 @@ See [this page](http://mmsports.multimedia-computing.de/mmsports2023/challenge.h
 These challenges are associated with the 6th Intrnational ACM Workshop on Multimedia Content Analysis in Sports.
 In this challenge, participants will have to segment the input video to recognize the bowl release action.
 
-## NOTE: The challenge dataset will be released in the next two weeks.
+## NOTE: The challenge dataset is scheduled to be made available within the next two weeks. For now, please treat the current repository as a preview of the final challenge. Note that certain modifications will be necessary once the final version of the dataset is released. The baseline will be trained and released accordingly, while the evaluation metric will remain unchanged.
 
-The dataset is split into a training, test and challenge set. Annotations will be provided for the first two splits and hidden for the latter.
+The dataset is split into training, test and challenge sets. Annotations will be provided for the first two splits and hidden for the latter.
 Data have been annotated internally by Sportradar. Videos are extracted from real matches and consist in about two "overs".
 The dataset will be relased publicly for research purposes only.
 
@@ -73,7 +73,7 @@ python main.py --epochs 50
 
 ## Data
 
-TBD
+Data have been annotated internally by Sportradar. We are preparring to make them publicly available and these operations will take approximately two weeks to complete.
 
 ## Submission on EvalAI
 Submit your result through the [challenge page on the EvalAI platform](https://eval.ai/web/challenges/challenge-page/2077/overview).
