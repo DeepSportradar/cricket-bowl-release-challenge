@@ -26,7 +26,7 @@ Typically lasting around 100 frames, the event detection aims to identify all in
 As the challenge objective is to identify all instances of bowl release, we decided to treat the problem as instance segmentation through time.
 For this reason, we use the Panoptic Quality as metric. 
 
-Panoptic Quality is a metric used to evaluate the performance of instance segmentation algorithms in computer vision. Instance segmentation involves identifying and delineating individual objects within an image, assigning each pixel to a specific object instance. Here we want to measure the model ability to identify and delineate individual bowl releases action instances.
+Panoptic Quality is a metric used to evaluate the performance of instance segmentation algorithms in computer vision. Instance segmentation involves identifying and delineating individual objects within an image, assigning each pixel to a specific object instance. Here we want to measure the model ability to identify and delineate individual bowl releases action instances, assigning each frame to a specific action event instance.
 
 Panoptic Quality combines two key aspects of instance segmentation: segmentation quality and recognition quality. It measures the accuracy of both the object boundary delineation (segmentation quality) and the correct association of each segment with the corresponding object category (recognition quality).
 
