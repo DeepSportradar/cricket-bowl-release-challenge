@@ -104,5 +104,11 @@ Where:
 
 Please refer to the challenge webpage for complete rules, timelines and awards: [https://deepsportradar.github.io/challenge.html](https://deepsportradar.github.io/challenge.html).
 
+## License
+
+- This repository is distributed under the [Apache 2.0 License](https://github.com/DeepSportradar/cricket-bowl-release-challenge/blob/master/LICENSE).
+- The challenge data, will be hosted on Kaggle and available under the [CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/) license.
+
+
 ## Questions and remarks
 If you have any question or remark regarding the challenge and related materials, please raise a GitHub issue in this repository, or contact us directly on [Discord](https://discord.gg/JvMQgMkpkm).
