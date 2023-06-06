@@ -34,15 +34,21 @@ To calculate Panoptic Quality, the algorithm's output is compared against ground
 
 Panoptic Quality is computed using the following formula:
 
-$Panoptic Quality = PQ = \frac{{\sum_{i=1}^{N}TP_i}}{{\sum_{i=1}^{N}TP_i + \frac{1}{2}\sum_{i=1}^{N}(FP_i + FN_i)}}.$
+$\text{Panoptic Quality} = PQ = \frac{\sum_{(p,g)\in{TP}}IoU(p,g)}{|TP| + \frac{1}{2}|FP| + \frac{1}{2}|FN|}.$
 
 
 Where:
 
-- N is the total number of object categories
-- TP_i is the number of true positives for category i
-- FP_i is the number of false positives for category i
-- FN_i is the number of false negatives for category i
+- IoU is the Intersection Over Union ratios for all true positives.
+- TP is the number of true positives.
+- FP is the number of false positives.
+- FN is the number of false negatives.
+
+The matric can be further broken in:
+
+$\text{Panoptic Quality} (PQ) = \text{Segmentation Quality} (SQ) \times \text{Recognition Quality} (RQ) = \frac{\sum_{(p,g)\in{TP}}IoU(p,g)}{|TP|} \times \frac{|TP|}{|TP| + \frac{1}{2}|FP| + \frac{1}{2}|FN|}$ .
+
+
 
 Please refer to the [Submission on EvalAI section](#submission-on-evalai) for the submission format.
     
