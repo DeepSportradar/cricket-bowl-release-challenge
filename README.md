@@ -8,7 +8,7 @@
 Welcome to the first edition of the DeepSportradar Cricket Bowl Release Challenge, which is one of the [ACM MMSports 2023 Workshop](http://mmsports.multimedia-computing.de/mmsports2023/index.html) challenges. 
 An opportunity to publish, as well as winning a $1000 prize by competing on [EvalAI](https://eval.ai/web/challenges/challenge-page/2077/overview). 
 See [this page](http://mmsports.multimedia-computing.de/mmsports2023/challenge.html) for more details about our challenges.
-These challenges are associated with the 6th Intrnational ACM Workshop on Multimedia Content Analysis in Sports.
+These challenges are associated with the 6th International ACM Workshop on Multimedia Content Analysis in Sports.
 In this challenge, participants will have to segment the input video to recognize the bowl release action.
 
 ## NOTE: The challenge dataset is scheduled to be made available within the next two weeks. For now, please treat the current repository as a preview of the final challenge. Note that certain modifications will be necessary once the final version of the dataset is released. The baseline will be trained and released accordingly, while the evaluation metric will remain unchanged.
@@ -34,7 +34,7 @@ To calculate Panoptic Quality, the algorithm's output is compared against ground
 
 Panoptic Quality is computed using the following formula:
 
-$\text{Panoptic Quality} = PQ = \frac{\sum_{(p,g)\in{TP}}IoU(p,g)}{|TP| + \frac{1}{2}|FP| + \frac{1}{2}|FN|}.$
+Panoptic Quality = PQ = $\frac{\sum_{(p,g)\in{TP}}IoU(p,g)}{|TP| + \frac{1}{2}|FP| + \frac{1}{2}|FN|}.$
 
 
 Where:
@@ -46,7 +46,7 @@ Where:
 
 The matric can be further broken in:
 
-$\text{Panoptic Quality} (PQ) = \text{Segmentation Quality} (SQ) \times \text{Recognition Quality} (RQ) = \frac{\sum_{(p,g)\in{TP}}IoU(p,g)}{|TP|} \times \frac{|TP|}{|TP| + \frac{1}{2}|FP| + \frac{1}{2}|FN|}$ .
+Panoptic Quality (PQ) = Segmentation Quality (SQ) x Recognition Quality (RQ) = $\frac{\sum_{(p,g)\in{TP}}IoU(p,g)}{|TP|} \times \frac{|TP|}{|TP| + \frac{1}{2}|FP| + \frac{1}{2}|FN|}$ .
 
 
 
@@ -65,7 +65,7 @@ Maintainers: Davide Zambrano (d.zambrano@sportradar.com) from Sportradar.
 Install [PyTorch](http://pytorch.org/). 
 
 ```shell
-git clone https://github.com/DeepSportradar/cricket-bowl-release-challenge/tree/v0.0.0
+git clone https://github.com/DeepSportradar/cricket-bowl-release-challenge.git
 cd cricket-bowl-release-challenge
 pip install -e .
 ```
