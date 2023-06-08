@@ -1,5 +1,4 @@
 import logging
-import math
 
 import torch
 from torchvision.models import ResNet18_Weights, resnet18
@@ -8,6 +7,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 class CricketBaseModel(torch.nn.Module):
+    """A basic model as an example of image classification"""
+
     def __init__(
         self,
     ):
@@ -31,7 +32,7 @@ class CricketBaseModel(torch.nn.Module):
 
 class CricketFeturesBaseModel(torch.nn.Module):
     """A FFN that reads "seq_length" features and predicts
-    if "is bowling" for eahc one of them
+    if "is bowling" for each one of them
     """
 
     def __init__(self, seq_length=50):
@@ -52,11 +53,9 @@ class CricketFeturesBaseModel(torch.nn.Module):
         return x
 
 
-def get_model(device, resume, features):
-    if features:
-        model = CricketFeturesBaseModel()
-    else:
-        model = CricketBaseModel()
+def get_model(device, resume):
+    model = CricketFeturesBaseModel()
+
     if resume:
         LOGGER.info(f"Loading model parameters from {resume}")
         model.load_state_dict(torch.load(resume))

@@ -6,14 +6,20 @@ from argparse import ArgumentParser
 
 import torch
 
-from bowlrelease.dataset.ds_cricket import get_dataloaders
-from bowlrelease.model.resnet import get_model
-from bowlrelease.runner.trainer import get_loss_and_optimizer, test, train
-from bowlrelease.utils.utils import configure_logger, get_device
+from bowlrelease.dataset import get_dataloaders
+from bowlrelease.model import get_model
+from bowlrelease.runner import get_loss_and_optimizer, test, train
+from bowlrelease.utils import (
+    configure_logger,
+    extract_all_videos_features,
+    get_device,
+)
 
 LOGGER = logging.getLogger("bowlrelease")
 MODEL_BEST = "model_best.pth"
 MODEL_FINAL = "model_final.pth"
+ANNOTATIONS = "annotations"
+VIDEOS = "videos"
 
 
 def main(
@@ -21,7 +27,7 @@ def main(
     epochs: int,
     resume: str,
     eval: bool,
-    features: bool = True,
+    data_dir: str,
 ):
     """Main function for the Cricket Bowl release detector.
 
@@ -30,7 +36,11 @@ def main(
         epochs (int): self explanatory
         resume (str): full path to model paramters to load
         eval (bool): wheter to evaluate only the model loaded from "RESUME"
-        from_features (bool): wheter to use the features instead of the images as input
+        data_dir (str): path to folder containing data.
+            This script assumes the following structure:
+                "data_dir":
+                    - annotations/
+                    - videos/
     """
 
     log_path = configure_logger(LOGGER, verbose=False, eval=eval)
@@ -38,25 +48,30 @@ def main(
     # Get cpu, gpu or mps device for training.
     device = get_device()
     LOGGER.info(f"Using {device} device")
-    data_path = "data/1-5111dd09-47d8-40d9-ae07-c9c114d58a7b_snippet1/"
-    ann_path = "data/sr_1-5111dd09-47d8-40d9-ae07-c9c114d58a7b_snippet1.json"
+
+    feature_list = extract_all_videos_features(
+        data_dir,
+        os.path.join(data_dir, ANNOTATIONS),
+        os.path.join(data_dir, VIDEOS),
+        device,
+        override=False,
+    )
     train_loader, test_loader = get_dataloaders(
-        data_path, ann_path, batch_size, features=features
+        feature_list, os.path.join(data_dir, ANNOTATIONS), batch_size
     )
 
-    model = get_model(device, resume, features)
-    loss_fn, optimizer = get_loss_and_optimizer(model, features)
+    model = get_model(device, resume)
+    loss_fn, optimizer = get_loss_and_optimizer(model)
 
     if eval:
         LOGGER.info("Eval \n-------------------------------")
-
-        test(test_loader, model, loss_fn, device, features)
+        test(test_loader, model, loss_fn, device)
         return
     best_iou = 0
     for epoch in range(epochs):
         LOGGER.info(f"Epoch {epoch+1}\n-------------------------------")
         train(train_loader, model, loss_fn, optimizer, device)
-        ioum = test(test_loader, model, loss_fn, device, features)
+        ioum = test(test_loader, model, loss_fn, device)
         if ioum > best_iou:
             torch.save(model.state_dict(), os.path.join(log_path, MODEL_BEST))
             best_iou = ioum
@@ -67,13 +82,13 @@ def main(
 
 
 if __name__ == "__main__":
-    # argparsers
+    # argparser
     parser = ArgumentParser()
     parser.add_argument("--batch_size", default=32, type=int)
     parser.add_argument("--epochs", type=int, default=5)
     parser.add_argument("--eval", action="store_true")
     parser.add_argument("--resume", type=str, default="")
-    parser.add_argument("--from_features", type=bool, default=True)
+    parser.add_argument("--data_dir", type=str, default="data")
 
     args = parser.parse_args()
     main(
@@ -81,5 +96,5 @@ if __name__ == "__main__":
         epochs=args.epochs,
         resume=args.resume,
         eval=args.eval,
-        features=args.from_features,
+        data_dir=args.data_dir,
     )
