@@ -1,6 +1,7 @@
 import logging
 
 import torch
+import torch.nn.functional as F
 from torchvision.models import ResNet18_Weights, resnet18
 
 LOGGER = logging.getLogger(__name__)
@@ -31,30 +32,42 @@ class CricketBaseModel(torch.nn.Module):
 
 
 class CricketFeturesBaseModel(torch.nn.Module):
-    """A FFN that reads "seq_length" features and predicts
+    """A FFN that reads "length_seq" features and predicts
     if "is bowling" for each one of them
     """
 
-    def __init__(self, seq_length=50):
+    def __init__(self, length_seq=50):
         super().__init__()
 
-        self.rn_model_fc = torch.nn.Linear(2048 * seq_length, 512)
-        self.feat_bn = torch.nn.BatchNorm1d(512)
-        self.classifier = torch.nn.Linear(512, seq_length)
+        self.rn_model_fc_1 = torch.nn.Linear(2048 * length_seq, 512)
+        self.feat_bn_1 = torch.nn.BatchNorm1d(512)
+        self.rn_model_fc_2 = torch.nn.Linear(512, 512)
+        self.feat_bn_2 = torch.nn.BatchNorm1d(512)
+        self.classifier = torch.nn.Linear(512, length_seq)
 
-        torch.nn.init.kaiming_uniform_(self.rn_model_fc.weight)
+        torch.nn.init.kaiming_uniform_(self.rn_model_fc_1.weight)
+        torch.nn.init.kaiming_uniform_(self.rn_model_fc_2.weight)
         torch.nn.init.kaiming_uniform_(self.classifier.weight)
 
     def forward(self, x):
         x = torch.flatten(x, 1)
-        x = self.rn_model_fc(x)
-        x = self.feat_bn(x)
+
+        x = self.rn_model_fc_1(x)
+        x = swish(self.feat_bn_1(x))
+
+        x = self.rn_model_fc_2(x)
+        x = swish(self.feat_bn_2(x))
+
         x = self.classifier(x)
         return x
 
 
-def get_model(device, resume):
-    model = CricketFeturesBaseModel()
+def swish(x):
+    return x * F.sigmoid(x)
+
+
+def get_model(device, resume, length_seq):
+    model = CricketFeturesBaseModel(length_seq=length_seq)
 
     if resume:
         LOGGER.info(f"Loading model parameters from {resume}")

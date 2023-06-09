@@ -127,3 +127,24 @@ def extract_all_videos_features(
                 video_name, video_dir, device, feat_filename
             )
     return feature_files
+
+
+def rising_edge(data, thresh):
+    sign = data >= thresh
+    pos = np.where(np.convolve(sign, [1, -1]) == 1)[0]
+    neg = np.where(np.convolve(sign, [1, -1]) == -1)[0]
+    assert len(pos) == len(neg), "error"
+    return list(zip(pos, neg))
+
+
+def convert_events(preds, gts):
+    gt_events = {}
+    pr_events = {}
+    for k, v in gts.items():
+        events_ = rising_edge(v, 0.5)
+        gt_events[k] = dict(enumerate(events_))
+    for k, v in preds.items():
+        events_ = rising_edge(v, 0.5)
+        pr_events[k] = dict(enumerate(events_))
+
+    return pr_events, gt_events

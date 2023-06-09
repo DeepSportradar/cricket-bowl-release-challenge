@@ -5,7 +5,6 @@ import os
 from argparse import ArgumentParser
 
 import torch
-
 from bowlrelease.dataset import get_dataloaders
 from bowlrelease.model import get_model
 from bowlrelease.runner import get_loss_and_optimizer, test, train
@@ -20,6 +19,7 @@ MODEL_BEST = "model_best.pth"
 MODEL_FINAL = "model_final.pth"
 ANNOTATIONS = "annotations"
 VIDEOS = "videos"
+LENGTH_SEQ = 75
 
 
 def main(
@@ -57,10 +57,13 @@ def main(
         override=False,
     )
     train_loader, test_loader = get_dataloaders(
-        feature_list, os.path.join(data_dir, ANNOTATIONS), batch_size
+        feature_list,
+        os.path.join(data_dir, ANNOTATIONS),
+        batch_size,
+        length_seq=LENGTH_SEQ,
     )
 
-    model = get_model(device, resume)
+    model = get_model(device=device, resume=resume, length_seq=LENGTH_SEQ)
     loss_fn, optimizer = get_loss_and_optimizer(model)
 
     if eval:

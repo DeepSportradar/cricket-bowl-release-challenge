@@ -2,8 +2,8 @@ import logging
 
 import numpy as np
 import torch
-
-from bowlrelease.runner import iou_metric
+from bowlrelease.runner import compute_pq_metric, iou_metric
+from bowlrelease.utils import convert_events
 
 LOGGER = logging.getLogger(__name__)
 
@@ -38,8 +38,14 @@ def test(dataloader, model, loss_fn, device):
     test_loss, correct = 0, 0
     gt_ = []
     pred_ = []
+    pred_dict = {}
+    gt_dict = {}
     with torch.no_grad():
-        for X, y in dataloader:
+        for idx, (X, y) in enumerate(dataloader):
+            video_batch_list = [
+                dataloader.dataset.indxs[i][0]
+                for i in range(len(y) * idx, len(y) * (idx + 1))
+            ]
             X, y = X.to(device), y.to(device)
             pred = model(X)
             test_loss += loss_fn(pred, y).item()
@@ -49,15 +55,32 @@ def test(dataloader, model, loss_fn, device):
                 (pred > 0.5).type(torch.float).cpu().numpy().flatten()
             )
             gt_.append(y.cpu().numpy().flatten())
+            pred_np = (pred > 0.5).type(torch.float).cpu().numpy()
+            gt_np = y.cpu().numpy()
+
+            for ib, vid in enumerate(video_batch_list):
+                pred_dict.setdefault(vid, []).append(pred_np[ib, :])
+                gt_dict.setdefault(vid, []).append(gt_np[ib, :])
     # TODO: save predictions to file for inference
     preds = np.concatenate(pred_)
     gts = np.concatenate(gt_)
+    for k, v in pred_dict.items():
+        pred_dict[k] = np.concatenate(v)
+    for k, v in gt_dict.items():
+        gt_dict[k] = np.concatenate(v)
     test_loss /= num_batches
     correct /= size
     LOGGER.info(
         f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n"
     )
-    return compute_metric(preds, gts)
+    pr_events, gt_events = convert_events(pred_dict, gt_dict)
+    pq, sq, rq = compute_pq_metric(gt_events, pr_events)
+    LOGGER.info(
+        f"Panoptic Quality: {(100*pq):>0.1f}%,\n \
+        Segmentation Quality: {(100*sq):>0.1f}%,\n \
+        Recognition Quality: {(100*rq):>0.1f}% \n"
+    )
+    return pq
 
 
 def compute_metric(preds, gts):

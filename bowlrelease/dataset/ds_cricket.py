@@ -154,15 +154,19 @@ def _split_sets(file_list, is_training: bool):
     return [f for f in file_list if f.split("/")[-1].split(".")[0] in split_]
 
 
-def get_dataloaders(feature_list, ann_path, batch_size):
+def get_dataloaders(feature_list, ann_path, batch_size, length_seq):
     train_features = _split_sets(feature_list, is_training=True)
     test_features = _split_sets(feature_list, is_training=False)
     annotation_list = [os.path.join(ann_path, f) for f in os.listdir(ann_path)]
     train_annotations = _split_sets(annotation_list, is_training=True)
     test_annotations = _split_sets(annotation_list, is_training=False)
 
-    train_set = CricketFeatureDataset(train_features, train_annotations)
-    test_set = CricketFeatureDataset(test_features, test_annotations)
+    train_set = CricketFeatureDataset(
+        train_features, train_annotations, length_seq=length_seq
+    )
+    test_set = CricketFeatureDataset(
+        test_features, test_annotations, length_seq=length_seq
+    )
     LOGGER.info("Created CricketFeatureDataset")
 
     train_loader = DataLoader(

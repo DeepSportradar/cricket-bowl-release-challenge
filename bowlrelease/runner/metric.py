@@ -3,6 +3,7 @@ import logging
 from typing import Dict, List, Tuple
 
 import numpy as np
+from bowlrelease.utils import rising_edge
 from pycocotools.mask import iou
 from scipy.optimize import linear_sum_assignment
 
@@ -72,7 +73,7 @@ def compute_pq_metric(
         fps += fps_
         fns += fns_
         iou_sum += iou_sum_
-    sq_ = iou_sum / tps
+    sq_ = iou_sum / tps if tps else 0
     rq_ = tps / (tps + 0.5 * fns + 0.5 * fps)
     pq_ = sq_ * rq_
     return pq_, sq_, rq_
