@@ -38,7 +38,6 @@ def configure_logger(logger: logging.Logger, verbose: bool, eval: bool) -> str:
     logger.addHandler(handler)
     log_path = ""
     if not eval:
-        print("not eval")
         log_path = os.path.join(
             "logs", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         )
