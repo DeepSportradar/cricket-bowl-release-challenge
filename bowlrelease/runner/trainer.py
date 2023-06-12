@@ -1,4 +1,6 @@
+import json
 import logging
+import os
 
 import numpy as np
 import torch
@@ -29,7 +31,7 @@ def train(dataloader, model, loss_fn, optimizer, device):
             LOGGER.info(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
 
-def test(dataloader, model, loss_fn, device):
+def test(dataloader, model, loss_fn, device, log_path=""):
     """Test function"""
     size = len(dataloader.dataset)
     size *= dataloader.dataset.length_seq
@@ -61,7 +63,6 @@ def test(dataloader, model, loss_fn, device):
             for ib, vid in enumerate(video_batch_list):
                 pred_dict.setdefault(vid, []).append(pred_np[ib, :])
                 gt_dict.setdefault(vid, []).append(gt_np[ib, :])
-    # TODO: save predictions to file for inference
     preds = np.concatenate(pred_)
     gts = np.concatenate(gt_)
     for k, v in pred_dict.items():
@@ -74,13 +75,27 @@ def test(dataloader, model, loss_fn, device):
         f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n"
     )
     pr_events, gt_events = convert_events(pred_dict, gt_dict)
-    pq, sq, rq = compute_pq_metric(gt_events, pr_events)
+    pq_test, sq_test, rq_test = compute_pq_metric(gt_events, pr_events)
     LOGGER.info(
-        f"Panoptic Quality: {(100*pq):>0.1f}%,\n \
-        Segmentation Quality: {(100*sq):>0.1f}%,\n \
-        Recognition Quality: {(100*rq):>0.1f}% \n"
+        f"Panoptic Quality: {(100*pq_test):>0.1f}%,\n \
+        Segmentation Quality: {(100*sq_test):>0.1f}%,\n \
+        Recognition Quality: {(100*rq_test):>0.1f}% \n"
     )
-    return pq
+    if log_path:
+        with open(
+            os.path.join(log_path, "test_predictions.json"),
+            "w",
+            encoding="utf-8",
+        ) as f_json:
+            json.dump(pr_events, f_json, ensure_ascii=False, indent=4)
+        with open(
+            os.path.join(log_path, "test_groundtruths.json"),
+            "w",
+            encoding="utf-8",
+        ) as f_json:
+            json.dump(gt_events, f_json, ensure_ascii=False, indent=4)
+
+    return pq_test
 
 
 def compute_metric(preds, gts):

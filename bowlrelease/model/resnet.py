@@ -62,6 +62,44 @@ class CricketFeturesBaseModel(torch.nn.Module):
         return x
 
 
+class CricketFeturesBaseConvModel(torch.nn.Module):
+    """A 1D Conv Net that reads "length_seq" features and predicts
+    if "is bowling" for each one of them
+    """
+
+    def __init__(self, length_seq=50):
+        super().__init__()
+
+        self.conv1 = torch.nn.Conv1d(2048, 256, 5, padding=2)
+        self.feat_bn_1 = torch.nn.BatchNorm1d(256)
+        self.conv2 = torch.nn.Conv1d(256, 512, 5, padding=2)
+        self.feat_bn_2 = torch.nn.BatchNorm1d(512)
+        self.rn_model_fc_1 = torch.nn.Linear(512 * length_seq, 512)
+        self.feat_bn_3 = torch.nn.BatchNorm1d(512)
+        self.classifier = torch.nn.Linear(512, length_seq)
+
+        torch.nn.init.kaiming_uniform_(self.conv1.weight)
+        torch.nn.init.kaiming_uniform_(self.conv2.weight)
+        torch.nn.init.kaiming_uniform_(self.classifier.weight)
+
+    def forward(self, x):
+        x = x.permute(0, 2, 1)
+
+        x = self.conv1(x)
+        x = swish(self.feat_bn_1(x))
+
+        x = self.conv2(x)
+        x = swish(self.feat_bn_2(x))
+
+        x = torch.flatten(x, 1)
+
+        x = self.rn_model_fc_1(x)
+        x = swish(self.feat_bn_3(x))
+
+        x = self.classifier(x)
+        return x
+
+
 def swish(x):
     return x * F.sigmoid(x)
 

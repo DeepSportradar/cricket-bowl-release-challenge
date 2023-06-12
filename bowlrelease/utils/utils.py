@@ -3,7 +3,7 @@
 import logging
 import os
 import time
-from typing import List
+from typing import Dict, List, Tuple
 
 import cv2
 import numpy as np
@@ -128,22 +128,29 @@ def extract_all_videos_features(
     return feature_files
 
 
-def rising_edge(data, thresh):
+def rising_edge(data: np.ndarray, thresh: float = 0.5) -> List[List[int]]:
+    """Detects events where the output goes from zero to one.
+    The events are list of two elements:
+    when the event starts, when the event ends."""
     sign = data >= thresh
     pos = np.where(np.convolve(sign, [1, -1]) == 1)[0]
     neg = np.where(np.convolve(sign, [1, -1]) == -1)[0]
+    neg -= 1
     assert len(pos) == len(neg), "error"
-    return list(zip(pos, neg))
+    return [[int(p), int(n)] for p, n in zip(pos, neg)]
 
 
-def convert_events(preds, gts):
+def convert_events(
+    preds: Dict[str, np.ndarray], gts: Dict[str, np.ndarray]
+) -> Tuple[Dict[str, List[List[int]]], Dict[str, List[List[int]]]]:
+    "Retruns predictions and gt events in dict format."
     gt_events = {}
     pr_events = {}
-    for k, v in gts.items():
-        events_ = rising_edge(v, 0.5)
+    for k, val in gts.items():
+        events_ = rising_edge(val)
         gt_events[k] = dict(enumerate(events_))
-    for k, v in preds.items():
-        events_ = rising_edge(v, 0.5)
+    for k, val in preds.items():
+        events_ = rising_edge(val)
         pr_events[k] = dict(enumerate(events_))
 
     return pr_events, gt_events
