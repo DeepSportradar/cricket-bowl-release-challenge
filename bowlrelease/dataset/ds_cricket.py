@@ -30,6 +30,12 @@ TEST_DATA = {
     "20221105_4142385_2overs",
     "20221203_4155996_2overs",
 }
+CHALLENGE_DATA = {
+    "20221112_4139153_2overs",
+    "20221126_4139159_2overs",
+    "20221105_4142385_2overs",
+    "20221203_4155996_2overs",
+}
 
 
 class CricketImageDataset(Dataset):
@@ -149,12 +155,69 @@ class CricketFeatureDataset(Dataset):
         )
 
 
+class CricketFeatureChallengeDataset(Dataset):
+    """Cricket Dataset from extracted features"""
+
+    def __init__(self, feature_files, length_seq=50):
+        self.feature_files = feature_files
+        self.features = {}
+        for _ff in feature_files:
+            video_name = _ff.split("/")[-1].split(".")[0]
+            self.features[video_name] = np.load(_ff)
+        self.length_seq = length_seq
+        self.feature_groups = {}
+        self.indxs = {}
+        lates_idx = 0
+        for video_name in CHALLENGE_DATA:
+            self.feature_groups[video_name] = [
+                self.features[video_name][n : n + length_seq, :]
+                for n in range(
+                    0, self.features[video_name].shape[0], length_seq
+                )
+            ]
+            if len(self.feature_groups[video_name][-1]) < self.length_seq:
+                self.feature_groups[video_name] = self.feature_groups[
+                    video_name
+                ][:-1]
+            for idx in range(len(self.feature_groups[video_name])):
+                new_idx = lates_idx + idx
+                self.indxs[new_idx] = (video_name, idx)
+            lates_idx += len(self.feature_groups[video_name])
+
+    def __len__(self):
+        return sum(len(v) for v in self.feature_groups.values())
+
+    def __getitem__(self, idx):
+        video_name_, idx_ = self.indxs[idx]
+        feature = self.feature_groups[video_name_][idx_]
+        return torch.Tensor(feature).float()
+
+
 def _split_sets(file_list, is_training: bool):
     split_ = TRAIN_DATA if is_training else TEST_DATA
     return [f for f in file_list if f.split("/")[-1].split(".")[0] in split_]
 
 
-def get_dataloaders(feature_list, ann_path, batch_size, length_seq):
+def get_dataloaders(
+    feature_list, ann_path, batch_size, length_seq, infer=False
+):
+    if infer:
+        infer_features = [
+            f
+            for f in feature_list
+            if f.split("/")[-1].split(".")[0] in CHALLENGE_DATA
+        ]
+        challenge_set = CricketFeatureChallengeDataset(
+            infer_features, length_seq=length_seq
+        )
+        return DataLoader(
+            challenge_set,
+            batch_size=batch_size,
+            num_workers=4,
+            pin_memory=True,
+            shuffle=False,
+        )
+
     train_features = _split_sets(feature_list, is_training=True)
     test_features = _split_sets(feature_list, is_training=False)
     annotation_list = [os.path.join(ann_path, f) for f in os.listdir(ann_path)]

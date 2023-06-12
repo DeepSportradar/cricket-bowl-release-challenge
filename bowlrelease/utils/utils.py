@@ -142,7 +142,10 @@ def rising_edge(data: np.ndarray, thresh: float = 0.5) -> List[List[int]]:
 
 def convert_events(
     preds: Dict[str, np.ndarray], gts: Dict[str, np.ndarray]
-) -> Tuple[Dict[str, List[List[int]]], Dict[str, List[List[int]]]]:
+) -> Tuple[
+    Dict[str, Dict[int, List[List[int]]]],
+    Dict[str, Dict[int, List[List[int]]]],
+]:
     "Retruns predictions and gt events in dict format."
     gt_events = {}
     pr_events = {}
