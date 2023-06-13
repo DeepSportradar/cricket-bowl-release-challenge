@@ -1,7 +1,7 @@
 """Testing some edge cases for the pq metrics"""
 import numpy as np
 from bowlrelease.runner import compute_pq_metric
-from bowlrelease.utils import convert_events, rising_edge
+from bowlrelease.utils import rising_edge
 
 DUMMY_GT = {
     "video_1": {0: [10, 20], 1: [100, 120]},
