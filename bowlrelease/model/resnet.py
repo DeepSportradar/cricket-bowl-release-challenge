@@ -109,5 +109,7 @@ def get_model(device, resume, length_seq):
 
     if resume:
         LOGGER.info(f"Loading model parameters from {resume}")
-        model.load_state_dict(torch.load(resume))
+        model.load_state_dict(
+            torch.load(resume, map_location=torch.device(device))
+        )
     return model.to(device)
