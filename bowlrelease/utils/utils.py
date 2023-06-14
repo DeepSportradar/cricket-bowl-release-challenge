@@ -122,9 +122,11 @@ def extract_all_videos_features(
         feat_filename = os.path.join(features_dir, video_name + ".npy")
         feature_files.append(feat_filename)
         if not os.path.exists(feat_filename) or override:
+            LOGGER.info(f"extracting features from  {video_name}.")
             extract_features_from_video(
                 video_name, video_dir, device, feat_filename
             )
+    LOGGER.info("All features extracted.")
     return feature_files
 
 
