@@ -1,6 +1,7 @@
 [![Discord](https://badgen.net/badge/icon/discord?icon=discord&label)](https://discord.gg/JvMQgMkpkm)
 [![Compete on EvalAI](https://badgen.net/badge/compete%20on/EvalAI/blue)](https://eval.ai/web/challenges/challenge-page/2077/overview)
 [![Win $1000](https://badgen.net/badge/win/%241%2C000.00/yellow)](http://mmsports.multimedia-computing.de/mmsports2023/challenge.html)
+[![Kaggle Dataset](https://badgen.net/badge/kaggle/dataset/blue)](https://www.kaggle.com/datasets/dzambrano/cricket-bowlrelease-dataset)
 
 # The DeepSportradar Cricket Bowl Release Challenge (2023)
 
@@ -11,11 +12,29 @@ See [this page](http://mmsports.multimedia-computing.de/mmsports2023/challenge.h
 These challenges are associated with the 6th International ACM Workshop on Multimedia Content Analysis in Sports.
 In this challenge, participants will have to segment the input video to recognize the bowl release action.
 
-## NOTE: The challenge dataset is scheduled to be made available within the next two weeks. For now, please treat the current repository as a preview of the final challenge. Note that certain modifications will be necessary once the final version of the dataset is released. The baseline will be trained and released accordingly, while the evaluation metric will remain unchanged.
+## NOTE: The challenge set will be uploaded in about one month.
+
+The dataset [is available on Kaggle](https://www.kaggle.com/datasets/dzambrano/cricket-bowlrelease-dataset).
+It can be downloaded and unzipped manually a folder (`cricket-bowlrelease-dataset`) of the project.
+
+We will here download it programmatically. First install the kaggle CLI.
+
+```bash
+pip install kaggle
+```
+
+Go to your Kaggle Account page and click on `Create new API Token` to download the file to be saved as `~/.kaggle/kaggle.json` for authentication.
+
+```bash
+kaggle datasets download deepsportradar/basketball-instants-dataset
+mkdir cricket-bowlrelease-dataset
+unzip -qo ./cricket-bowlrelease-dataset.zip -d cricket-bowlrelease-dataset
+```
+
 
 The dataset is split into training, test and challenge sets. Annotations will be provided for the first two splits and hidden for the latter.
 Data have been annotated internally by Sportradar. Videos are extracted from real matches and consist in about two "overs".
-The dataset will be relased publicly for research purposes only.
+The dataset are relased publicly, under [CC BY-NC-ND 4.0 LICENCE](https://creativecommons.org/licenses/by-nc-nd/4.0/), for research purposes only.
 
 The objective of this challenge is to segment the specific parts of videos where a bowl release action occurs, focusing on detecting the full time window of the action. 
 This differs from other action detection tasks, that treat actions as single moments in time. 
@@ -107,7 +126,7 @@ Please refer to the challenge webpage for complete rules, timelines and awards: 
 ## License
 
 - This repository is distributed under the [Apache 2.0 License](https://github.com/DeepSportradar/cricket-bowl-release-challenge/blob/master/LICENSE).
-- The challenge data, will be hosted on Kaggle and available under the [CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/) license.
+- The challenge data is hosted on Kaggle and available under the [CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/) license.
 
 
 ## Questions and remarks
