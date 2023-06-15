@@ -98,7 +98,10 @@ python main.py --epochs 50
 
 ## Data
 
-Data have been annotated internally by Sportradar. We are preparring to make them publicly available and these operations will take approximately two weeks to complete.
+Data have been annotated internally by Sportradar. The dataset is a collection of cricket videos, which are already publicly available, with about "2 overs" of a cricket game.
+Annotations provide the action type "is bowling" or "bowl release" in the "event" key.
+The bounding boxes of players and their role are also provided under the key "person".
+This dataset has been curated and provided by Sportradar.
 
 ## Submission on EvalAI
 Submit your result through the [challenge page on the EvalAI platform](https://eval.ai/web/challenges/challenge-page/2077/overview).
