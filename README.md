@@ -15,7 +15,7 @@ In this challenge, participants will have to segment the input video to recogniz
 ## NOTE: The challenge set will be uploaded in about one month.
 
 The dataset [is available on Kaggle](https://www.kaggle.com/datasets/dzambrano/cricket-bowlrelease-dataset).
-It can be downloaded and unzipped manually a folder (`cricket-bowlrelease-dataset`) of the project.
+It can be downloaded and unzipped manually in a folder (i.e. `cricket-bowlrelease-dataset`) of the project.
 
 We will here download it programmatically. First install the kaggle CLI.
 
@@ -26,7 +26,7 @@ pip install kaggle
 Go to your Kaggle Account page and click on `Create new API Token` to download the file to be saved as `~/.kaggle/kaggle.json` for authentication.
 
 ```bash
-kaggle datasets download deepsportradar/basketball-instants-dataset
+kaggle datasets download dzambrano/cricket-bowlrelease-dataset
 mkdir cricket-bowlrelease-dataset
 unzip -qo ./cricket-bowlrelease-dataset.zip -d cricket-bowlrelease-dataset
 ```
