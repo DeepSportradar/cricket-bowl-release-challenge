@@ -9,6 +9,7 @@
 Welcome to the first edition of the DeepSportradar Cricket Bowl Release Challenge, which is one of the [ACM MMSports 2023 Workshop](http://mmsports.multimedia-computing.de/mmsports2023/index.html) challenges. 
 An opportunity to publish, as well as winning a $1000 prize by competing on [EvalAI](https://eval.ai/web/challenges/challenge-page/2077/overview). 
 See [this page](http://mmsports.multimedia-computing.de/mmsports2023/challenge.html) for more details about our challenges.
+
 These challenges are associated with the 6th International ACM Workshop on Multimedia Content Analysis in Sports.
 In this challenge, participants will have to segment the input video to recognize the bowl release action.
 
@@ -16,7 +17,7 @@ In this challenge, participants will have to segment the input video to recogniz
 ## On the Challenge name
 
 The dataset annotations (see [below session](#data)) contain the events describing the bowler actions: "is bowling" and the proper "ball release". We decided to merge these two actions as we're interested in both of them. 
-Therefore, the dataset name on [Kaggle](https://www.kaggle.com/datasets/dzambrano/cricket-bowlrelease-dataset) and the Challenge name itself is called "bowl release" which is probably technically not correct but gives the idea of the task.
+Therefore, the dataset name on [Kaggle](https://www.kaggle.com/datasets/dzambrano/cricket-bowlrelease-dataset) and the Challenge name itself are called "bowl release" which is probably technically not correct but gives the idea of the task.
 
 ## Data
 
@@ -141,3 +142,4 @@ Please refer to the challenge webpage for complete rules, timelines and awards: 
 
 ## Questions and remarks
 If you have any question or remark regarding the challenge and related materials, please raise a GitHub issue in this repository, or contact us directly on [Discord](https://discord.gg/JvMQgMkpkm).
+You can also drop an email to deep@sportradar.com .
