@@ -12,7 +12,21 @@ See [this page](http://mmsports.multimedia-computing.de/mmsports2023/challenge.h
 These challenges are associated with the 6th International ACM Workshop on Multimedia Content Analysis in Sports.
 In this challenge, participants will have to segment the input video to recognize the bowl release action.
 
-## NOTE: The challenge set will be uploaded in about one month.
+
+## On the Challenge name
+
+The dataset annotations (see [below session](#data)) contain the events describing the bowler actions: "is bowling" and the proper "ball release". We decided to merge these two actions as we're interested in both of them. 
+Therefore, the dataset name on [Kaggle](https://www.kaggle.com/datasets/dzambrano/cricket-bowlrelease-dataset) and the Challenge name itself is called "bowl release" which is probably technically not correct but gives the idea of the task.
+
+## Data
+
+Data have been annotated internally by Sportradar. The dataset is a collection of cricket videos, which are already publicly available, with about "2 overs" of a cricket game.
+Annotations provide the action type "is bowling" or "bowl release" in the "event" key.
+The bounding boxes of players and their role are also provided under the key "person".
+This dataset has been curated and provided by Sportradar.
+
+
+## NOTE: The challenge set will be uploaded in about one month. For now, you can use the test set to assess the prediction format on EvalAI.
 
 The dataset [is available on Kaggle](https://www.kaggle.com/datasets/dzambrano/cricket-bowlrelease-dataset).
 It can be downloaded and unzipped manually in a folder (i.e. `cricket-bowlrelease-dataset`) of the project.
@@ -95,13 +109,6 @@ Run the following command to train a baseline model:
 ```shell
 python main.py --epochs 50
 ```
-
-## Data
-
-Data have been annotated internally by Sportradar. The dataset is a collection of cricket videos, which are already publicly available, with about "2 overs" of a cricket game.
-Annotations provide the action type "is bowling" or "bowl release" in the "event" key.
-The bounding boxes of players and their role are also provided under the key "person".
-This dataset has been curated and provided by Sportradar.
 
 ## Submission on EvalAI
 Submit your result through the [challenge page on the EvalAI platform](https://eval.ai/web/challenges/challenge-page/2077/overview).
