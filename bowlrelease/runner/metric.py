@@ -28,7 +28,7 @@ def _compute_pq_sq_rq(det, ann):
 
 def _compute_matching(det, ann):
     iou_matrix = iou(det[:, :4], ann[:, :4], np.zeros((len(ann)))).T
-    iou_matrix[iou_matrix < 0.5] = 0.0
+    iou_matrix[iou_matrix < IOU_THRESHOLD] = 0.0
     iou_sum = 0.0
     det_idxs, ann_idxs = linear_sum_assignment(iou_matrix.T, maximize=True)
     ann_idxs_mth, det_idxs_mth = [], []
@@ -43,12 +43,14 @@ def _compute_matching(det, ann):
 
 
 def compute_pq_metric(
-    gt_data: Dict[str, Dict[str, List[int]]],
-    pred_data: Dict[str, Dict[str, List[int]]],
+    gt_data: Dict[str, Dict[int, List[List[int]]]],
+    pred_data: Dict[str, Dict[int, List[List[int]]]],
 ) -> Tuple[float, float, float]:
     """Panoptic Quality metric.
     It computes the mean of the Panoptic quality scores across all videos.
-
+    The input format is a dict with keys as video_names and values as Dict.
+    The values Dict have keys as integer (event number) and values as
+    a list of lists two integers (event start frame, event end frame).
 
     Args:
         gt_data (Dict): ground truth data.
@@ -72,19 +74,19 @@ def compute_pq_metric(
         fps += fps_
         fns += fns_
         iou_sum += iou_sum_
-    sq_ = iou_sum / tps
+    sq_ = iou_sum / tps if tps else 0
     rq_ = tps / (tps + 0.5 * fns + 0.5 * fps)
     pq_ = sq_ * rq_
     return pq_, sq_, rq_
 
 
-def iou_metric(gt, pred, weights, thre):
+def iou_metric(gts, preds, weights, thre):
     """Generic IOU metric"""
-    pred = pred >= thre
-    inter = np.sum((pred * gt) * weights)
-    union = np.sum(np.logical_or(pred, gt) * weights)
+    preds = preds >= thre
+    inter = np.sum((preds * gts) * weights)
+    union = np.sum(np.logical_or(preds, gts) * weights)
     if union == 0.0:
-        iou = 0.0
+        iou_ = 0.0
     else:
-        iou = inter / union
-    return iou
+        iou_ = inter / union
+    return iou_

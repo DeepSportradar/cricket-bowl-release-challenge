@@ -5,18 +5,65 @@ import os
 
 import numpy as np
 import torch
-from torch.utils.data import DataLoader, Dataset, Subset
+from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 from torchvision.io import read_image
 
 LOGGER = logging.getLogger(__name__)
 
+TRAIN_DATA = {
+    "20221001_4139131_2overs",
+    "20221119_4139084_2overs",
+    "20221126_4139157_2overs",
+    "20221203_4139091_2overs",
+    "20221203_4142743_2overs",
+    "20221203_4139088_2overs",
+    "20221203_4139162_2overs",
+    "20221203_4139164_2overs",
+    "20221105_4142385_2overs",
+    "20221203_4143496_2overs",
+    "20221112_4142388_2overs",
+    "20221203_4142744_2overs",
+    "20221203_4139090_2overs",
+    "20221112_4139153_2overs",
+    "20220327_3916886_2overs",
+    "20221126_4155987_2overs",
+    "20221203_4139088_2overs",
+    "20221112_4142735_2overs",
+    "20221112_4155986_2overs",
+    "20221001_4139132_2overs",
+}
+TEST_DATA = {
+    "20221126_4139157_2overs",
+    "20221126_4139156_2overs",
+    "20221203_4142396_2overs",
+    "20221105_4139079_2overs",
+    "20221203_4139160_2overs",
+    "20221203_4156185_2overs",
+    "20221112_4142385_2overs",
+    "20221001_4139134_2overs",
+}
+CHALLENGE_DATA = {
+    "20221126_4139157_2overs",
+    "20221126_4139156_2overs",
+    "20221203_4142396_2overs",
+    "20221105_4139079_2overs",
+    "20221203_4139160_2overs",
+    "20221203_4156185_2overs",
+    "20221112_4142385_2overs",
+    "20221001_4139134_2overs",
+}
+
 
 class CricketImageDataset(Dataset):
-    """Cricket Image Dataset"""
+    """Cricket Base Image Dataset.
+    It serves just as an example of a dataset
+    that uses raw images as input.
+
+    """
 
     def __init__(self, annotations_file, img_dir):
-        with open(annotations_file) as ann_:
+        with open(annotations_file, "r", encoding="utf-8") as ann_:
             self.annotations = json.load(ann_)
         annotated = list(self.annotations["event"].keys())
         self.img_dir = img_dir
@@ -31,7 +78,6 @@ class CricketImageDataset(Dataset):
             if int(idx) < len(self.img_files):
                 self.labels[int(idx)] = 1
 
-        # TODO: selective augmentation for training or testing
         self.transforms = transforms.Compose(
             [
                 transforms.ToPILImage(),
@@ -57,66 +103,151 @@ class CricketImageDataset(Dataset):
 class CricketFeatureDataset(Dataset):
     """Cricket Dataset from extracted features"""
 
-    def __init__(self, annotations_file, length_seq=50, is_training=False):
-        feature_file = "features.npy"
-        if not is_training:
-            feature_file = "features_test.npy"
-        self.feature = np.load(feature_file)
+    def __init__(self, feature_files, annotation_files, length_seq=50):
+        self.feature_files = feature_files
+        self.features = {}
+        for _ff in feature_files:
+            video_name = _ff.split("/")[-1].split(".")[0]
+            self.features[video_name] = np.load(_ff)
         self.length_seq = length_seq
-        self.is_training = is_training
+        self.annotations = {}
+        self.labels = {}
+        self.label_groups = {}
+        self.feature_groups = {}
+        self.indxs = {}
+        lates_idx = 0
+        for _af in annotation_files:
+            video_name = _af.split("/")[-1].split(".")[0]
+            with open(_af, "r", encoding="utf-8") as ann_:
+                self.annotations[video_name] = json.load(ann_)
 
-        with open(annotations_file) as ann_:
-            self.annotations = json.load(ann_)
-        annotated = list(self.annotations["event"].keys())
-        if is_training:
-            annotated = [int(a) for a in annotated if int(a) < 15000]
-        else:
-            annotated = [int(a) - 15000 for a in annotated if int(a) >= 15000]
-        self.labels = np.zeros(self.feature.shape[0], dtype=int)
+            annotated = [
+                int(k) for k in self.annotations[video_name]["event"].keys()
+            ]
 
-        for idx in annotated:
-            if idx > len(self.labels):
-                continue
-            self.labels[idx] = 1.0
-        self.label_groups = [
-            self.labels[n : n + self.length_seq]
-            for n in range(0, len(self.labels), self.length_seq)
-        ]
-        self.feature_groups = [
-            self.feature[n : n + length_seq, :]
-            for n in range(0, len(self.labels), length_seq)
-        ]
-        if len(self.label_groups[-1]) < self.length_seq:
-            self.label_groups = self.label_groups[:-1]
-            self.feature_groups = self.feature_groups[:-1]
+            self.labels[video_name] = np.zeros(
+                self.features[video_name].shape[0], dtype=int
+            )
+
+            for idx in annotated:
+                if idx > len(self.labels[video_name]):
+                    continue
+                self.labels[video_name][idx] = 1.0
+
+            self.label_groups[video_name] = [
+                self.labels[video_name][n : n + self.length_seq]
+                for n in range(
+                    0,
+                    len(self.labels[video_name]),
+                    self.length_seq,
+                )
+            ]
+
+            self.feature_groups[video_name] = [
+                self.features[video_name][n : n + length_seq, :]
+                for n in range(0, len(self.labels[video_name]), length_seq)
+            ]
+            if len(self.label_groups[video_name][-1]) < self.length_seq:
+                self.label_groups[video_name] = self.label_groups[video_name][
+                    :-1
+                ]
+                self.feature_groups[video_name] = self.feature_groups[
+                    video_name
+                ][:-1]
+            for idx in range(len(self.label_groups[video_name])):
+                new_idx = lates_idx + idx
+                self.indxs[new_idx] = (video_name, idx)
+            lates_idx += len(self.label_groups[video_name])
 
     def __len__(self):
-        return len(self.label_groups)
+        return sum(len(v) for v in self.label_groups.values())
 
     def __getitem__(self, idx):
-        feature = self.feature_groups[idx]
-        label = self.label_groups[idx]
+        video_name_, idx_ = self.indxs[idx]
+        feature = self.feature_groups[video_name_][idx_]
+        label = self.label_groups[video_name_][idx_]
         return (
             torch.Tensor(feature).float(),
             torch.Tensor(label).float(),
         )
 
 
-def get_dataloaders(data_path, ann_path, batch_size, features=True):
-    # TODO: provide real paths
-    if features:
-        train_set = CricketFeatureDataset(ann_path, is_training=True)
-        test_set = CricketFeatureDataset(ann_path, is_training=False)
-        LOGGER.info(f"Created CricketFeatureDataset")
-    else:
-        dataset = CricketImageDataset(ann_path, data_path)
+class CricketFeatureChallengeDataset(Dataset):
+    """Cricket Dataset from extracted features"""
 
-        train_set = Subset(dataset, range(15000))
-        test_set = Subset(
-            dataset,
-            [len(train_set) + f for f in range(len(dataset) - len(train_set))],
+    def __init__(self, feature_files, length_seq=50):
+        self.feature_files = feature_files
+        self.features = {}
+        for _ff in feature_files:
+            video_name = _ff.split("/")[-1].split(".")[0]
+            self.features[video_name] = np.load(_ff)
+        self.length_seq = length_seq
+        self.feature_groups = {}
+        self.indxs = {}
+        lates_idx = 0
+        for video_name in CHALLENGE_DATA:
+            self.feature_groups[video_name] = [
+                self.features[video_name][n : n + length_seq, :]
+                for n in range(
+                    0, self.features[video_name].shape[0], length_seq
+                )
+            ]
+            if len(self.feature_groups[video_name][-1]) < self.length_seq:
+                self.feature_groups[video_name] = self.feature_groups[
+                    video_name
+                ][:-1]
+            for idx in range(len(self.feature_groups[video_name])):
+                new_idx = lates_idx + idx
+                self.indxs[new_idx] = (video_name, idx)
+            lates_idx += len(self.feature_groups[video_name])
+
+    def __len__(self):
+        return sum(len(v) for v in self.feature_groups.values())
+
+    def __getitem__(self, idx):
+        video_name_, idx_ = self.indxs[idx]
+        feature = self.feature_groups[video_name_][idx_]
+        return torch.Tensor(feature).float()
+
+
+def _split_sets(file_list, is_training: bool):
+    split_ = TRAIN_DATA if is_training else TEST_DATA
+    return [f for f in file_list if f.split("/")[-1].split(".")[0] in split_]
+
+
+def get_dataloaders(
+    feature_list, ann_path, batch_size, length_seq, infer=False
+):
+    if infer:
+        infer_features = [
+            f
+            for f in feature_list
+            if f.split("/")[-1].split(".")[0] in CHALLENGE_DATA
+        ]
+        challenge_set = CricketFeatureChallengeDataset(
+            infer_features, length_seq=length_seq
         )
-        LOGGER.info(f"Created CricketImageDataset")
+        return DataLoader(
+            challenge_set,
+            batch_size=batch_size,
+            num_workers=4,
+            pin_memory=True,
+            shuffle=False,
+        )
+
+    train_features = _split_sets(feature_list, is_training=True)
+    test_features = _split_sets(feature_list, is_training=False)
+    annotation_list = [os.path.join(ann_path, f) for f in os.listdir(ann_path)]
+    train_annotations = _split_sets(annotation_list, is_training=True)
+    test_annotations = _split_sets(annotation_list, is_training=False)
+
+    train_set = CricketFeatureDataset(
+        train_features, train_annotations, length_seq=length_seq
+    )
+    test_set = CricketFeatureDataset(
+        test_features, test_annotations, length_seq=length_seq
+    )
+    LOGGER.info("Created CricketFeatureDataset")
 
     train_loader = DataLoader(
         train_set,

@@ -21,5 +21,12 @@ setup(
     python_requires=">=3.7",
     packages=find_packages(),
     include_package_data=True,
-    install_requires=["numpy", "pycocotools", "scipy", "torch", "torchvision"],
+    install_requires=[
+        "numpy",
+        "pycocotools",
+        "scipy",
+        "torch",
+        "torchvision",
+        "vidgear",
+    ],
 )
