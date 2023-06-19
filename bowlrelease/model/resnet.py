@@ -59,6 +59,8 @@ class CricketFeturesBaseModel(torch.nn.Module):
         x = swish(self.feat_bn_2(x))
 
         x = self.classifier(x)
+        x = F.sigmoid(x)
+
         return x
 
 
@@ -97,6 +99,8 @@ class CricketFeturesBaseConvModel(torch.nn.Module):
         x = swish(self.feat_bn_3(x))
 
         x = self.classifier(x)
+        x = F.sigmoid(x)
+
         return x
 
 

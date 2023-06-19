@@ -147,7 +147,7 @@ def compute_metric(preds, gts):
 def get_loss_and_optimizer(model):
     """Return loss and optimizer"""
 
-    loss_fn = torch.nn.MSELoss()
+    loss_fn = torch.nn.BCELoss()
     optimizer = torch.optim.AdamW(model.parameters(), amsgrad=True)
 
     return loss_fn, optimizer
