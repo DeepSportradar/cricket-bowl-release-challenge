@@ -24,10 +24,10 @@ Therefore, the dataset name on [Kaggle](https://www.kaggle.com/datasets/dzambran
 Data have been annotated internally by Sportradar. The dataset is a collection of cricket videos, which are already publicly available, with about "2 overs" of a cricket game.
 Annotations provide the action type "is bowling" or "bowl release" in the "event" key.
 The bounding boxes of players and their role are also provided under the key "person".
-This dataset has been curated and provided by Sportradar.
+This dataset has been curated and provided by [Sportradar](https://sportradar.com).
 
 
-## NOTE: The challenge set will be uploaded in about one month. For now, you can use the test set to assess the prediction format on EvalAI.
+## NOTE: The challenge set has been released! Please download the latest version from Kaggle!
 
 The dataset [is available on Kaggle](https://www.kaggle.com/datasets/dzambrano/cricket-bowlrelease-dataset).
 It can be downloaded and unzipped manually in a folder (i.e. `cricket-bowlrelease-dataset`) of the project.
