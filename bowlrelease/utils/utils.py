@@ -106,7 +106,6 @@ def extract_features_from_video(
 
 def extract_all_videos_features(
     data_dir: str,
-    annotations_dir: str,
     video_dir: str,
     device: str,
     override: bool = False,
@@ -115,7 +114,6 @@ def extract_all_videos_features(
 
     Args:
         data_dir (str): Location where data are expected
-        annotations_dir (str): annotation subfolder: <data_dir>/<annotations_dir>
         video_dir (str): videos subfolder: <data_dir>/<videos>
         device (str): current devide to extract features
         override (bool, optional): if true it will re-extract the features,
@@ -124,12 +122,12 @@ def extract_all_videos_features(
     Returns:
         List[str]: A list of file paths of extracted features.
     """
-    list_dirs = os.listdir(annotations_dir)
+    list_dirs = os.listdir(video_dir)
     features_dir = os.path.join(data_dir, "features")
     os.makedirs(features_dir, exist_ok=True)
     feature_files = []
     for file in list_dirs:
-        video_name = file[:-5]
+        video_name = file[:-4]
         feat_filename = os.path.join(features_dir, video_name + ".npy")
         feature_files.append(feat_filename)
         if (not os.path.exists(feat_filename)) or override:
