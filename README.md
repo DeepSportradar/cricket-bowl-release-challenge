@@ -31,6 +31,7 @@ This dataset has been curated and provided by [Sportradar](https://sportradar.co
 
 The dataset [is available on Kaggle](https://www.kaggle.com/datasets/dzambrano/cricket-bowlrelease-dataset).
 It can be downloaded and unzipped manually in a folder (i.e. `cricket-bowlrelease-dataset`) of the project.
+The dataset contains a total of 40 videos and 26 annotation files: 26 videos are annotated (18 for training and 8 for testing) and 14 videos are with annotations for the challenge.
 
 We will here download it programmatically. First install the kaggle CLI.
 
